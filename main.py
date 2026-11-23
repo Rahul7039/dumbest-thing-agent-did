@@ -45,7 +45,18 @@ def main() -> int:
         os.makedirs(out_dir, exist_ok=True)
     with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(line)
-    print(f"wrote {len(line)} chars to {out_path}")
+    # Read back what the judge will actually see and re-validate it:
+    # a write that silently changed the text (newline translation, a
+    # stray trailing space) must fail loudly here, not at grading time.
+    with open(out_path, "r", encoding="utf-8", newline="") as f:
+        written = f.read()
+    if written != line:
+        raise ValueError(
+            f"read-back mismatch: wrote {len(line)} chars, "
+            f"file holds {len(written)} chars"
+        )
+    validate(written)
+    print(f"wrote {len(line)} chars to {out_path} (read-back verified)")
     return 0
 
 
